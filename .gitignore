@@ -1,6 +1,5 @@
 code
-cmake-build-debug/
-chromedriver/
-2015CS10234_2014ME20762/
+cmake-build-debug/*
+chromedriver/*
 *.zip
-
+.idea/*

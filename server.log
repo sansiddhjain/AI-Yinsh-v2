@@ -1,2 +1,18 @@
-{"action": "NORMAL", "meta": "", "data": "P 5 26"} Received from client 0
-{"action": "KILLPROC", "meta": "UNEXPECTED STOP BY PLAYER 2 : Player 2 SCORE : 0.0 : Player 1 SCORE : 10.0", "data": ""} Received from client 1
+{"action": "NORMAL", "meta": "", "data": "P 0 0"} Received from client 0
+{"action": "NORMAL", "meta": "", "data": "P 1 0"} Received from client 1
+{"action": "NORMAL", "meta": "", "data": "P 4 6"} Received from client 0
+{"action": "NORMAL", "meta": "", "data": "P 1 1"} Received from client 1
+{"action": "NORMAL", "meta": "", "data": "P 2 5"} Received from client 0
+{"action": "NORMAL", "meta": "", "data": "P 1 2"} Received from client 1
+{"action": "NORMAL", "meta": "", "data": "P 3 14"} Received from client 0
+{"action": "NORMAL", "meta": "", "data": "P 1 3"} Received from client 1
+{"action": "NORMAL", "meta": "", "data": "P 5 12"} Received from client 0
+{"action": "NORMAL", "meta": "", "data": "P 1 4"} Received from client 1
+{"action": "NORMAL", "meta": "", "data": "S 2 5 M 3 7"} Received from client 0
+{"action": "NORMAL", "meta": "", "data": "S 1 2 M 3 8"} Received from client 1
+{"action": "NORMAL", "meta": "", "data": "S 0 0 M 2 4"} Received from client 0
+{"action": "NORMAL", "meta": "", "data": "S 1 4 M 2 9"} Received from client 1
+{"action": "NORMAL", "meta": "", "data": "S 2 4 M 3 6"} Received from client 0
+{"action": "NORMAL", "meta": "", "data": "S 1 3 M 2 3"} Received from client 1
+{"action": "NORMAL", "meta": "", "data": "S 3 6 M 4 8"} Received from client 0
+{"action": "NORMAL", "meta": "", "data": "S 1 1 M 2 2"} Received from client 1

@@ -74,10 +74,10 @@ public:
     int return_l(){ return l; }
     bool is_position_valid(pair<int,int> position);
     bool is_move_valid(pair<int,int> p1, pair<int, int> p2);
-    void place_piece(char type, char color, pair<int, int> position);
-    void remove_piece(pair<int, int> position);
-    void move_ring(pair<int, int> p1, pair<int, int> p2);
-    void delete_row(pair<int, int> p1, pair<int, int> p2);
+    bool place_piece(char type, char color, pair<int,int> position);
+    bool remove_piece(pair<int,int> position);
+    bool move_ring(pair<int,int> p1, pair<int, int> p2);
+    bool delete_row(pair<int,int> p1, pair<int,int> p2);
     double score_function(vector<pair<pair<int, int>, pair<int, int> > > vec);
     double calculate_score();
     vector< pair < double, pair<pair<int, int>, pair<int, int> > > > successors_score(pair<int,int> initial_pos);

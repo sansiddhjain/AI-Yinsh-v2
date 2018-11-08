@@ -95,8 +95,10 @@ void Agent::recursive_construct_tree(Board board, Node *node, int depth, int max
             node->children[idx] = new Node;
             node->children[idx]->move = move;
             Board b(board);
-            b.move_ring(move.first, move.second);
-            recursive_construct_tree(b, node->children[idx], depth + 1, maxDepth);
+            bool c = b.move_ring(move.first, move.second);
+            if (c) {
+                recursive_construct_tree(b, node->children[idx], depth + 1, maxDepth);
+            }
             idx++;
         }
     }
@@ -133,7 +135,6 @@ string Agent::initial_move() {
     }
 }
 
-// gets next move
 string Agent::get_next_move() {
     // IMPORTANT - Also executes next move
     if (state.num_moves_played < 10) {
@@ -144,12 +145,24 @@ string Agent::get_next_move() {
     state_tree = Board(state);
     Node *tree = new Node;
     tree->type = 'M';
-    minimax_ab_sort(state_tree, tree, 0, -INFINITY, INFINITY, 5);
+    // 3 3 4 is doing good
+    if (state.num_moves_played < 16) {
+        minimax_ab_sort(state_tree, tree, 0, -INFINITY, INFINITY, 5);
+//        recursive_construct_tree(state_tree, tree, 0, 2);
+    }
+    else if (state.num_moves_played < 22) {
+        minimax_ab_sort(state_tree, tree, 0, -INFINITY, INFINITY, 5);
+//        recursive_construct_tree(state_tree, tree, 0, 3);
+    }
+    else {
+        minimax_ab_sort(state_tree, tree, 0, -INFINITY, INFINITY, 5);
+//        recursive_construct_tree(state_tree, tree, 0,4);
+    }
 
     pair<pair<int, int>, pair<int, int> > move = tree->children[tree->gotoidx]->move;
     std::cerr << move.first.first << ", " << move.first.second << "; " << move.second.first << ", "
               << move.second.second << '\n';
-    state.move_ring(move.first, move.second);
+    bool b = state.move_ring(move.first, move.second);
 
     // convert to string to send to server
     vector<pair<pair<int, int>, pair<int, int> > > five_or_more = state.get_marker_rows(5, state.player_color);
@@ -204,7 +217,7 @@ string Agent::get_next_move() {
                     end.second = start.second + 4;
                 }
             }
-            state.delete_row(start, end);
+            bool trash = state.delete_row(start, end);
             start = state.xy_to_hex(start);
             end = state.xy_to_hex(end);
             // Output string waala part
@@ -218,7 +231,7 @@ string Agent::get_next_move() {
             output += " X";
             //todo: figure out which ring to removes
             pair<int, int> ring = state.rings_vector.at(state.num_rings_on_board - 1);
-            state.remove_piece(ring);
+            bool b = state.remove_piece(ring);
             ring = state.xy_to_hex(ring);
             output += " " + to_string(ring.first);
             output += " " + to_string(ring.second);
@@ -333,12 +346,7 @@ double Agent::minimax(Node *node) {
 //    }
 //}
 
-// minimax with alpha beta while sorting
 double Agent::minimax_ab_sort(Board board, Node *node, int depth, double alpha, double beta, int maxDepth) {
-
-//    if(depth == maxDepth && !board.get_marker_rows(4, board.player_color).empty()) {
-//        maxDepth += 1;
-//    }
 
     if (!board.get_marker_rows(5, board.player_color).empty()) {
         return board.calculate_score();

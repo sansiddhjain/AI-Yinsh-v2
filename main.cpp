@@ -10,22 +10,24 @@ using namespace std;
 // Sample C++ Code
 int main(int argc, char** argv) {
 
-   int player_id, board_size, time_limit;
+   int player_id, board_size, time_limit, seq_length;
    string move;
+   string temp = "x";
    // Get input from server about game specifications
-   cin >> player_id >> board_size >> time_limit;
-   cerr << player_id << " " << board_size << " " << time_limit << endl;
+   cin >> player_id >> board_size >> time_limit >> seq_length;
+   cerr << player_id << " " << board_size << " " << time_limit << " " << seq_length << endl;
    Agent a(player_id, board_size, time_limit, 'o', 'b');
 
    if(player_id == 2) {
        // Get other player's move
-       while(move.empty()) {
+
+       while(move == "") {
            getline(cin, move);
        }
-//        cerr << "MOve " << move << endl;
+       cerr << "Move " << move << endl;
        a.execute_move(move, 2);
 
-//        cerr << "1 " << move << "\n";
+       cerr << "1 " << move << "\n";
        while(true) {
 //            cerr << "Reached here" << endl;
            move = a.get_next_move();
