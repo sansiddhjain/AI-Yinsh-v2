@@ -7,6 +7,9 @@
 #include <algorithm>
 #include "Agent.h"
 #include <iostream>
+#include <cfloat>
+
+#define STALEMATE_SCORE 5
 
 using namespace std;
 
@@ -14,50 +17,7 @@ void Agent::execute_move(string move, int playerID) {
     state.execute_move(move, playerID);
 }
 
-//// Copy state to state_tree
-//void Agent::copy_board() {
-//    // = operator copies maps and copies vectors
-//    state_tree.game_board = state.game_board;
-//    state_tree.num_rings_on_board = state.num_rings_on_board;
-//    state_tree.num_opp_rings_on_board = state.num_opp_rings_on_board;
-//    state_tree.rings_vector = state.rings_vector;
-//    state_tree.opp_rings_vector = state.opp_rings_vector;
-//
-//}
 
-//// Simple scoring function based on Slovenian guy recommendation #2
-//double Agent::score_function(vector<pair<pair<int, int>, pair<int, int> > > vec) {
-//    vector<pair<pair<int, int>, pair<int, int> > >::iterator ptr;
-//
-//    double result = 0;
-//    for (ptr = vec.begin(); ptr < vec.end(); ptr++) {
-//        pair<pair<int, int>, pair<int, int> > tuple = *ptr;
-//        pair<int, int> start = tuple.first;
-//        pair<int, int> end = tuple.second;
-//        if (start.first == end.first) // x coordinate same case
-//            result += pow(3.0, (fabs(end.second - start.second) + 1)) - 1;
-//        else if (start.second == end.second) // y coordinate same case
-//            result += pow(3.0, (fabs(end.first - start.first) + 1)) - 1;
-//        else // x - y = k
-//            result += pow(3.0, (fabs(end.first - start.first) + 1)) - 1;
-//        // Can think of combining else and else if
-//    }
-//    return 0.5 * result;
-//}
-//
-//// Calculate score of player, subtract score of opponent
-//double Agent::calculate_score(Board& board) {
-//    vector<pair<pair<int, int>, pair<int, int> > > player_markers = board.get_marker_rows(1, board.player_color);
-//    vector<pair<pair<int, int>, pair<int, int> > > opp_markers = board.get_marker_rows(1, board.other_color);
-//    double score = score_function(player_markers) - score_function(opp_markers);
-//    vector<pair<pair<int, int>, pair<int, int> > > five_or_more = state.get_marker_rows(5, state.player_color);
-//    if (!five_or_more.empty())
-//      score += 100000;
-//    five_or_more = state.get_marker_rows(5, state.other_color);
-//    if (!five_or_more.empty())
-//      score += -100000;
-//    return score;
-//}
 
 // Recursively construct tree normally
 void Agent::recursive_construct_tree(Board board, Node *node, int depth, int maxDepth) {
@@ -139,6 +99,7 @@ string Agent::get_next_move() {
     // IMPORTANT - Also executes next move
     if (state.num_moves_played < 10) {
         // Perform placement of ring
+        cerr << "In initial move" << endl;
         state.num_moves_played++;
         return initial_move();
     }
@@ -162,84 +123,10 @@ string Agent::get_next_move() {
     pair<pair<int, int>, pair<int, int> > move = tree->children[tree->gotoidx]->move;
     std::cerr << move.first.first << ", " << move.first.second << "; " << move.second.first << ", "
               << move.second.second << '\n';
-    bool b = state.move_ring(move.first, move.second);
 
     // convert to string to send to server
-    vector<pair<pair<int, int>, pair<int, int> > > five_or_more = state.get_marker_rows(5, state.player_color);
-    move.first = state.xy_to_hex(move.first);
-    move.second = state.xy_to_hex(move.second);
-    string output = "S";
-    output += " " + to_string(move.first.first);
-    output += " " + to_string(move.first.second);
-    output += " M";
-    output += " " + to_string(move.second.first);
-    output += " " + to_string(move.second.second);
-    if (five_or_more.empty()) {
-        state.num_moves_played++;
-        return output;
-    }
-    else {
-//        while(!five_or_more.empty()) {
-            pair<pair<int, int>, pair<int, int> > tuple = five_or_more.at(0);
-//            five_or_more.pop_back();
-            pair<int, int> start = tuple.first;
-            pair<int, int> end = tuple.second;
-            if (start.first == end.first) // x coordinate same case
-            {
-                if (end.second > start.second)
-                    end.second = start.second + 4;
-                else
-                    end.second = start.second - 4;
-            }
-            else if (start.second == end.second) // y coordinate same case
-            {
-                if (end.first > start.first)
-                    end.first = start.first + 4;
-                else
-                    end.second = start.first - 4;
-            }
-            else // x - y = k
-            {
-                if ((end.first > start.first) & (end.second > start.second)) {
-                    end.first = start.first + 4;
-                    end.second = start.second + 4;
-                }
-                else if ((end.first > start.first) & (end.second < start.second)) {
-                    end.first = start.first + 4;
-                    end.second = start.second - 4;
-                }
-                else if ((end.first < start.first) & (end.second < start.second)) {
-                    end.first = start.first - 4;
-                    end.second = start.second - 4;
-                }
-                else {
-                    end.first = start.first - 4;
-                    end.second = start.second + 4;
-                }
-            }
-            bool trash = state.delete_row(start, end);
-            start = state.xy_to_hex(start);
-            end = state.xy_to_hex(end);
-            // Output string waala part
-
-            output += " RS";
-            output += " " + to_string(start.first);
-            output += " " + to_string(start.second);
-            output += " RE";
-            output += " " + to_string(end.first);
-            output += " " + to_string(end.second);
-            output += " X";
-            //todo: figure out which ring to removes
-            pair<int, int> ring = state.rings_vector.at(state.num_rings_on_board - 1);
-            bool b = state.remove_piece(ring);
-            ring = state.xy_to_hex(ring);
-            output += " " + to_string(ring.first);
-            output += " " + to_string(ring.second);
-            five_or_more = state.get_marker_rows(5, state.player_color);
-//        }
-        state.num_moves_played++;
-        return output;
-    }
+    string output = state.execute_move_and_return_server_string(move);
+    return output;
 }
 
 // Vanilla minimax
@@ -276,75 +163,132 @@ double Agent::minimax(Node *node) {
         return min_score;
     }
 }
-// Minimax with Alpha Beta Pruning
-// void minimax_ab() {}
 
 
-//double Agent::minimax_ab(Board board, Node *node, int depth, double alpha, double beta, int maxDepth) {
-//    if (depth == maxDepth)
-//        return board.calculate_score();
-//    else {
-//        node->isLeaf = false;
-//        vector<pair<pair<int, int>, pair<int, int> > > succ_all;
-//        if (depth % 2 == 0) {//Self player is playing
-//            node->type = 'M';
-//            for (int i = 0; i < state.num_rings_on_board; i++) {
-//                vector<pair<pair<int, int>, pair<int, int> > > succ_ring = board.successors(board.rings_vector.at(i));
-//                succ_all.reserve(succ_all.size() + succ_ring.size());
-//                succ_all.insert(succ_all.end(), succ_ring.begin(), succ_ring.end());
-//            }
-//        }
-//        else {//Opponent is playing
-//            node->type = 'm';
-//            for (int i = 0; i < state.num_opp_rings_on_board; i++) {
-//                vector<pair<pair<int, int>, pair<int, int> > > succ_ring = board.successors(board.opp_rings_vector.at(i));
-//                succ_all.reserve(succ_all.size() + succ_ring.size());
-//                succ_all.insert(succ_all.end(), succ_ring.begin(), succ_ring.end());
-//            }
-//        }
-//
-//        node->children = new Node*[succ_all.size()];
-//
-//        if(node->type == 'M') {
-//            double v = -INFINITY;
-//            for (int i = 0; i < succ_all.size(); i++) {
-//                node->children[i] = new Node;
-//                node->children[i]->move = succ_all[i];
-//                node->children[i]->type = 'm';
-//                Board temp_board(board);
-//                temp_board.move_ring(succ_all[i].first, succ_all[i].second);
-//                double v_prime = minimax_ab(temp_board, node->children[i], depth + 1, v, beta, maxDepth);
-//                if(v_prime > v){
-//                    v = v_prime;
-//                    node->gotoidx = i;
-//                }
-//                alpha = max(alpha, v);
-//                if (alpha >= beta)
-//                    break;
-//            }
-//            return v;
-//        }
-//        else {
-//            double v = INFINITY;
-//            for (int i = 0; i < succ_all.size(); i++) {
-//                node->children[i] = new Node;
-//                node->children[i]->move = succ_all[i];
-//                node->children[i]->type = 'M';
-//                Board temp_board(board);
-//                temp_board.move_ring(succ_all[i].first, succ_all[i].second);
-//                double v_prime = minimax_ab(temp_board, node->children[i], depth + 1, alpha, v, maxDepth);
-//                if(v_prime < v) {
-//                    v = v_prime;
-//                    node->gotoidx = i;
-//                }
-//                beta = min(beta, v);
-//                if (alpha >= beta)
-//                    break;
-//            }
-//            return v;
-//        }
-//    }
-//}
+NodeMCTS* Agent::select(NodeMCTS* root){
+    if(root->isLeaf)
+        return root;
+    else {
+        //find best child
+        double maxUCB1 = -DBL_MAX;
+        NodeMCTS* bestchild = nullptr;
+        for(auto& child : root->children) {
+            double ucb = child->ucb();
+            if(ucb > maxUCB1) {
+                maxUCB1 = ucb;
+                bestchild = child;
+            }
+        }
+        return select(bestchild);
+    }
+}
+
+// randomly chooses one of the successors and adds to tree
+void Agent::expand(NodeMCTS* node) {
+    node->isLeaf = false;
+    vector<pair<pair<int, int>, pair<int, int> > > succ_all;
+    if (node->depth % 2 == 0) {//Self player is playing
+        node->type = 'M';
+        for (int i = 0; i < state.num_rings_on_board; i++) {
+            vector<pair<pair<int, int>, pair<int, int> > > succ_ring = node->configuration->successors(node->configuration->rings_vector.at(i));
+            succ_all.reserve(succ_all.size() + succ_ring.size());
+            succ_all.insert(succ_all.end(), succ_ring.begin(), succ_ring.end());
+        }
+    }
+    else {//Opponent is playing
+        node->type = 'm';
+        for (int i = 0; i < state.num_opp_rings_on_board; i++) {
+            vector<pair<pair<int, int>, pair<int, int> > > succ_ring = node->configuration->successors(node->configuration->opp_rings_vector.at(i));
+            succ_all.reserve(succ_all.size() + succ_ring.size());
+            succ_all.insert(succ_all.end(), succ_ring.begin(), succ_ring.end());
+        }
+    }
+
+    int i = rand() % succ_all.size();
+
+    NodeMCTS* child = new NodeMCTS(node);
+    child->depth++;
+    child->move = succ_all.at(i);
+    child->type = node->type == 'M' ? 'm' : 'M';
+    Board *temp_board = new Board(*node->configuration);
+    temp_board->execute_move_and_return_server_string(child->move);
+    child->configuration = temp_board;
+    node->children.emplace_back(child);
+    return;
+}
+
+//plays random move till finish and returns score
+int Agent::simulate(NodeMCTS* node) {
+    NodeMCTS simulator(*node);
+
+    while(!check_end(*simulator.configuration)) {
+        vector<pair<pair<int, int>, pair<int, int> > > succ_all;
+        if (simulator.depth % 2 == 0) {//Self player is playing
+            simulator.type = 'M';
+            for (int i = 0; i < state.num_rings_on_board; i++) {
+                vector<pair<pair<int, int>, pair<int, int> > > succ_ring = simulator.configuration->successors(simulator.configuration->rings_vector.at(i));
+                succ_all.reserve(succ_all.size() + succ_ring.size());
+                succ_all.insert(succ_all.end(), succ_ring.begin(), succ_ring.end());
+            }
+        }
+        else {//Opponent is playing
+            simulator.type = 'm';
+            for (int i = 0; i < state.num_opp_rings_on_board; i++) {
+                vector<pair<pair<int, int>, pair<int, int> > > succ_ring = simulator.configuration->successors(simulator.configuration->opp_rings_vector.at(i));
+                succ_all.reserve(succ_all.size() + succ_ring.size());
+                succ_all.insert(succ_all.end(), succ_ring.begin(), succ_ring.end());
+            }
+        }
+
+        if(succ_all.empty())
+            return STALEMATE_SCORE + simulator.configuration->num_opp_rings_on_board - simulator.configuration->num_rings_on_board;
+
+        int i = rand() % succ_all.size();
+        simulator.type = simulator.type == 'M' ? 'm' : 'M';
+        simulator.depth++;
+        simulator.configuration->execute_move_and_return_server_string(succ_all.at(i));
+    }
+    return check_end(*simulator.configuration);
+}
+
+void Agent::backpropagate(NodeMCTS* node, int score) {
+    if(node == nullptr)
+        return;
+    if(node->type == 'M')
+        node->totalValue += 10 - score;
+    else
+        node->totalValue += score;
+    node->visits++;
+    backpropagate(node->parent, score);
+}
+
+
+pair<pair<int,int>, pair<int,int>> Agent::monte_carlo(int iterations) {
+
+    NodeMCTS* root = new NodeMCTS(nullptr);
+    root->configuration = new Board(this->state);
+
+
+    for(int i = 0; i < iterations; i++){
+        NodeMCTS* selected = select(root);
+        expand(selected);
+        int score = simulate(selected);
+        backpropagate(selected, score);
+    }
+
+    double bestScore = -DBL_MAX;
+    NodeMCTS* bestChild = nullptr;
+    for(auto& child : root->children) {
+        if(child->totalValue/child->visits > bestScore) {
+            bestChild = child;
+            bestScore = child->totalValue;
+        }
+    }
+
+    delete root;
+    return bestChild->move;
+}
+
 
 double Agent::minimax_ab_sort(Board board, Node *node, int depth, double alpha, double beta, int maxDepth) {
 
@@ -438,6 +382,131 @@ double Agent::minimax_ab_sort(Board board, Node *node, int depth, double alpha, 
     }
 }
 
-bool Agent::check_won() {
-    return state.num_rings_on_board == (state.return_m() - state.return_l());
+int Agent::check_end(Board state) {
+    if (state.num_rings_on_board == (state.return_m() - state.return_l())){
+        return 10 - (state.return_m() - state.num_opp_rings_on_board);
+    }
+    else if (state.num_opp_rings_on_board == (state.return_m() - state.return_l())) {
+        return state.num_rings_on_board;
+    }
+    else
+        return 0;
 }
+
+
+//// Copy state to state_tree
+//void Agent::copy_board() {
+//    // = operator copies maps and copies vectors
+//    state_tree.game_board = state.game_board;
+//    state_tree.num_rings_on_board = state.num_rings_on_board;
+//    state_tree.num_opp_rings_on_board = state.num_opp_rings_on_board;
+//    state_tree.rings_vector = state.rings_vector;
+//    state_tree.opp_rings_vector = state.opp_rings_vector;
+//
+//}
+
+//// Simple scoring function based on Slovenian guy recommendation #2
+//double Agent::score_function(vector<pair<pair<int, int>, pair<int, int> > > vec) {
+//    vector<pair<pair<int, int>, pair<int, int> > >::iterator ptr;
+//
+//    double result = 0;
+//    for (ptr = vec.begin(); ptr < vec.end(); ptr++) {
+//        pair<pair<int, int>, pair<int, int> > tuple = *ptr;
+//        pair<int, int> start = tuple.first;
+//        pair<int, int> end = tuple.second;
+//        if (start.first == end.first) // x coordinate same case
+//            result += pow(3.0, (fabs(end.second - start.second) + 1)) - 1;
+//        else if (start.second == end.second) // y coordinate same case
+//            result += pow(3.0, (fabs(end.first - start.first) + 1)) - 1;
+//        else // x - y = k
+//            result += pow(3.0, (fabs(end.first - start.first) + 1)) - 1;
+//        // Can think of combining else and else if
+//    }
+//    return 0.5 * result;
+//}
+//
+//// Calculate score of player, subtract score of opponent
+//double Agent::calculate_score(Board& board) {
+//    vector<pair<pair<int, int>, pair<int, int> > > player_markers = board.get_marker_rows(1, board.player_color);
+//    vector<pair<pair<int, int>, pair<int, int> > > opp_markers = board.get_marker_rows(1, board.other_color);
+//    double score = score_function(player_markers) - score_function(opp_markers);
+//    vector<pair<pair<int, int>, pair<int, int> > > five_or_more = state.get_marker_rows(5, state.player_color);
+//    if (!five_or_more.empty())
+//      score += 100000;
+//    five_or_more = state.get_marker_rows(5, state.other_color);
+//    if (!five_or_more.empty())
+//      score += -100000;
+//    return score;
+//}
+
+// Minimax with Alpha Beta Pruning
+// void minimax_ab() {}
+
+
+double Agent::minimax_ab(Board board, Node *node, int depth, double alpha, double beta, int maxDepth) {
+    if (depth == maxDepth)
+        return board.calculate_score();
+    else {
+        node->isLeaf = false;
+        vector<pair<pair<int, int>, pair<int, int> > > succ_all;
+        if (depth % 2 == 0) {//Self player is playing
+            node->type = 'M';
+            for (int i = 0; i < state.num_rings_on_board; i++) {
+                vector<pair<pair<int, int>, pair<int, int> > > succ_ring = board.successors(board.rings_vector.at(i));
+                succ_all.reserve(succ_all.size() + succ_ring.size());
+                succ_all.insert(succ_all.end(), succ_ring.begin(), succ_ring.end());
+            }
+        }
+        else {//Opponent is playing
+            node->type = 'm';
+            for (int i = 0; i < state.num_opp_rings_on_board; i++) {
+                vector<pair<pair<int, int>, pair<int, int> > > succ_ring = board.successors(board.opp_rings_vector.at(i));
+                succ_all.reserve(succ_all.size() + succ_ring.size());
+                succ_all.insert(succ_all.end(), succ_ring.begin(), succ_ring.end());
+            }
+        }
+
+        node->children = new Node*[succ_all.size()];
+
+        if(node->type == 'M') {
+            double v = -INFINITY;
+            for (int i = 0; i < succ_all.size(); i++) {
+                node->children[i] = new Node;
+                node->children[i]->move = succ_all[i];
+                node->children[i]->type = 'm';
+                Board temp_board(board);
+                temp_board.move_ring(succ_all[i].first, succ_all[i].second);
+                double v_prime = minimax_ab(temp_board, node->children[i], depth + 1, v, beta, maxDepth);
+                if(v_prime > v){
+                    v = v_prime;
+                    node->gotoidx = i;
+                }
+                alpha = max(alpha, v);
+                if (alpha >= beta)
+                    break;
+            }
+            return v;
+        }
+        else {
+            double v = INFINITY;
+            for (int i = 0; i < succ_all.size(); i++) {
+                node->children[i] = new Node;
+                node->children[i]->move = succ_all[i];
+                node->children[i]->type = 'M';
+                Board temp_board(board);
+                temp_board.move_ring(succ_all[i].first, succ_all[i].second);
+                double v_prime = minimax_ab(temp_board, node->children[i], depth + 1, alpha, v, maxDepth);
+                if(v_prime < v) {
+                    v = v_prime;
+                    node->gotoidx = i;
+                }
+                beta = min(beta, v);
+                if (alpha >= beta)
+                    break;
+            }
+            return v;
+        }
+    }
+}
+
+//todo: clarify stalemate  and  timeout policy

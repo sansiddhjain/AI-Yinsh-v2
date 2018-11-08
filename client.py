@@ -202,7 +202,6 @@ class Client(Communicator):
 		"""             
 		if(data[-1] != '\n'):
 			data = data + '\n'
-		print("Data is " + data)
 		success_flag = super(Client, self).SendDataOnPipe(data)         
 		if(success_flag == False):
 			print 'ERROR : FAILED TO SEND DATA TO PROCESS'

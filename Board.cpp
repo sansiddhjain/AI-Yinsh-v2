@@ -733,3 +733,83 @@ vector<pair<pair<int, int>, pair<int, int> > > Board::get_marker_rows(int length
  *  move_ring(old_pos, new_pos)
  *  delete_row
  */
+
+string Board::execute_move_and_return_server_string(pair<pair<int,int>, pair<int,int>>move) {
+    // convert to string to send to server
+    bool b = this->move_ring(move.first, move.second);
+    vector<pair<pair<int, int>, pair<int, int> > > five_or_more = this->get_marker_rows(5, this->player_color);
+    move.first = this->xy_to_hex(move.first);
+    move.second = this->xy_to_hex(move.second);
+    string output = "S";
+    output += " " + to_string(move.first.first);
+    output += " " + to_string(move.first.second);
+    output += " M";
+    output += " " + to_string(move.second.first);
+    output += " " + to_string(move.second.second);
+    if (five_or_more.empty()) {
+        this->num_moves_played++;
+        return output;
+    }
+    else {
+//        while(!five_or_more.empty()) {
+        pair<pair<int, int>, pair<int, int> > tuple = five_or_more.at(0);
+//            five_or_more.pop_back();
+        pair<int, int> start = tuple.first;
+        pair<int, int> end = tuple.second;
+        if (start.first == end.first) // x coordinate same case
+        {
+            if (end.second > start.second)
+                end.second = start.second + 4;
+            else
+                end.second = start.second - 4;
+        }
+        else if (start.second == end.second) // y coordinate same case
+        {
+            if (end.first > start.first)
+                end.first = start.first + 4;
+            else
+                end.second = start.first - 4;
+        }
+        else // x - y = k
+        {
+            if ((end.first > start.first) & (end.second > start.second)) {
+                end.first = start.first + 4;
+                end.second = start.second + 4;
+            }
+            else if ((end.first > start.first) & (end.second < start.second)) {
+                end.first = start.first + 4;
+                end.second = start.second - 4;
+            }
+            else if ((end.first < start.first) & (end.second < start.second)) {
+                end.first = start.first - 4;
+                end.second = start.second - 4;
+            }
+            else {
+                end.first = start.first - 4;
+                end.second = start.second + 4;
+            }
+        }
+        bool trash = this->delete_row(start, end);
+        start = this->xy_to_hex(start);
+        end = this->xy_to_hex(end);
+        // Output string waala part
+
+        output += " RS";
+        output += " " + to_string(start.first);
+        output += " " + to_string(start.second);
+        output += " RE";
+        output += " " + to_string(end.first);
+        output += " " + to_string(end.second);
+        output += " X";
+        //todo: figure out which ring to removes
+        pair<int, int> ring = this->rings_vector.at(this->num_rings_on_board - 1);
+        bool b = this->remove_piece(ring);
+        ring = this->xy_to_hex(ring);
+        output += " " + to_string(ring.first);
+        output += " " + to_string(ring.second);
+        five_or_more = this->get_marker_rows(5, this->player_color);
+//        }
+        this->num_moves_played++;
+        return output;
+    }
+}

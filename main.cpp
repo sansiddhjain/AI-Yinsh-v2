@@ -12,7 +12,6 @@ int main(int argc, char** argv) {
 
    int player_id, board_size, time_limit, seq_length;
    string move;
-   string temp = "x";
    // Get input from server about game specifications
    cin >> player_id >> board_size >> time_limit >> seq_length;
    cerr << player_id << " " << board_size << " " << time_limit << " " << seq_length << endl;
@@ -20,7 +19,6 @@ int main(int argc, char** argv) {
 
    if(player_id == 2) {
        // Get other player's move
-
        while(move == "") {
            getline(cin, move);
        }
@@ -30,9 +28,16 @@ int main(int argc, char** argv) {
        cerr << "1 " << move << "\n";
        while(true) {
 //            cerr << "Reached here" << endl;
-           move = a.get_next_move();
-//            a.execute_move(move, 1);
-           cout << move << endl;
+//           move = a.get_next_move();
+            if(a.state.num_moves_played < 10) {
+                move = a.get_next_move();
+                cout << move << endl;
+            }
+            else {
+                pair<pair<int,int>,pair<int,int>> monte_carlo_move = a.monte_carlo(100);
+    //            a.execute_move(move, 1);
+                cout << a.state.execute_move_and_return_server_string(monte_carlo_move) << endl;
+            }
            move.clear();
            while(move == "") {
                getline(cin, move);
@@ -43,8 +48,15 @@ int main(int argc, char** argv) {
    }
    else if(player_id == 1) {
        while(true) {
-           move = a.get_next_move();
-           cout << move << endl;
+           if(a.state.num_moves_played < 10) {
+               move = a.get_next_move();
+               cout << move << endl;
+           }
+           else {
+//           move = a.get_next_move();
+               pair<pair<int,int>,pair<int,int>> monte_carlo_move = a.monte_carlo(100);
+               cout << a.state.execute_move_and_return_server_string(monte_carlo_move) << endl;
+           }
 //            a.execute_move(move, 1);
            move.clear();
            while(move == "") {

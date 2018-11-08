@@ -47,7 +47,7 @@ public:
 class Board{
 private:
     int n; // size of board
-    int m; // number of rings
+    int m; // number of rings initially
     int l; // rings needed to remove to win
     int k; // markers in a line to remove ring
     pair<int,int> get_bounds(int i);
@@ -85,6 +85,7 @@ public:
     pair<int,int> xy_to_hex(pair<int,int> point);
     pair<int,int> hex_to_xy(pair<int,int> hex_point);
     void execute_move(string move, int playerID);
+    string execute_move_and_return_server_string(pair<pair<int,int>, pair<int,int>>move);
     vector< pair< pair<int,int>, pair<int,int> > > get_marker_rows(int length, char color); //returns rows of length >= given
     vector< pair<double, pair<pair<int, int>, pair<int, int> > > > successors_score1(pair<int, int> initial_pos);
 };
