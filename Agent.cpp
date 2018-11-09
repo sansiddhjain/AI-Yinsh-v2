@@ -167,24 +167,34 @@ double Agent::minimax(Node *node) {
 
 
 NodeMCTS* Agent::select(NodeMCTS* root){
-    // std::cerr << "inside select" << '\n';
     if(root->isLeaf)
     {
-        // std::cerr << "select finished" << '\n';
+        std::cerr << "end selection" << '\n';
         return root;
     }
     else {
         //find best child
         double maxUCB1 = -DBL_MAX;
-        NodeMCTS* bestchild = nullptr;
+        NodeMCTS* bestChild = nullptr;
+        int i = 0, bestChildIdx = 0;
         for(auto& child : root->children) {
+            if (child->isLeaf) {
+              bestChildIdx = i;
+              bestChild = child;
+              break;
+            }
             double ucb = child->ucb();
+            // std::cerr << ucb << ' ';
             if(ucb > maxUCB1) {
                 maxUCB1 = ucb;
-                bestchild = child;
+                bestChild = child;
+                bestChildIdx = i;
             }
+            i++;
         }
-        return select(bestchild);
+        // std::cerr << '\n';
+        std::cerr << bestChildIdx << ' ';
+        return select(bestChild);
     }
 }
 
@@ -214,17 +224,25 @@ void Agent::expand(NodeMCTS* node) {
       node->isLeaf = true;
       return;
     }
-    // srand(time(NULL));
-    int i = rand() % succ_all.size();
 
-    NodeMCTS* child = new NodeMCTS(node);
-    child->depth++;
-    child->move = succ_all.at(i);
-    child->type = node->type == 'M' ? 'm' : 'M';
-    Board *temp_board = new Board(*node->configuration);
-    temp_board->execute_move_and_return_server_string(child->move);
-    child->configuration = temp_board;
-    node->children.emplace_back(child);
+    // Board temp_board;
+    for (int i = 0; i < succ_all.size(); i++)
+    {
+      NodeMCTS* child = new NodeMCTS(node);
+      child->depth++;
+      child->move = succ_all.at(i);
+      child->parent = node;
+      child->type = node->type == 'M' ? 'm' : 'M';
+      Board *temp_board = new Board(*node->configuration);
+      temp_board->execute_move_and_return_server_string(child->move);
+      child->configuration = temp_board;
+      node->children.emplace_back(child);
+    }
+
+    // srand(time(NULL));
+    // int i = rand() % succ_all.size();
+    // node->children.at(i)->isLeaf = false;
+    // return node->children.at(i);
     return;
 }
 
@@ -236,6 +254,7 @@ int Agent::simulate(NodeMCTS* node) {
     // std::cerr << simulator.type << '\n';
     // std::cerr << "entered simulate" << '\n';
     // std::cerr << check_end(*simulator.configuration) << '\n';
+    int no_of_steps = 0;
     while(check_end(*simulator.configuration) < 0) {
       // std::cerr << "entered while loop" << '\n';
         vector<pair<pair<int, int>, pair<int, int> > > succ_all;
@@ -267,7 +286,9 @@ int Agent::simulate(NodeMCTS* node) {
         simulator.type = simulator.type == 'M' ? 'm' : 'M';
         simulator.depth++;
         simulator.configuration->execute_move_and_return_server_string(succ_all.at(i));
+        no_of_steps++;
     }
+    std::cerr << "Simulated till " << no_of_steps << " steps" << '\n';
     return check_end(*simulator.configuration);
 }
 
@@ -288,30 +309,30 @@ pair<pair<int,int>, pair<int,int>> Agent::monte_carlo(int iterations) {
     NodeMCTS* root = new NodeMCTS(nullptr);
     root->configuration = new Board(this->state);
 
-
-    for(int i = 0; i < iterations; i++){
+    // for(int i = 0; i < iterations; i++){
+    for(int i = 0; i < 35; i++){
         NodeMCTS* selected = select(root);
-        // std::cerr << "selected" << '\n';
+        std::cerr << '\n';
         expand(selected);
+        std::cerr << "root children size - " << root->children.size() << '\n';
+        std::cerr << "Whether root is leaf - " << root->isLeaf << '\n';
+        std::cerr << "Whether selected is leaf - " << selected->isLeaf << '\n';
         // std::cerr << "expanded" << '\n';
         int score = simulate(selected);
-        // std::cerr << "simulated" << '\n';
+        std::cerr << "score after simulation - " << score << '\n';
         backpropagate(selected, score);
-        // std::cerr << "backpropagated" << '\n';
+        std::cerr << "selected total value " << selected->totalValue << '\n';
+        std::cerr << "selected total no of visits " << selected->visits <<  '\n';
+        std::cerr << "root total value " << root->totalValue << '\n';
+        std::cerr << "root total no of visits " << root->visits <<  '\n';
         std::cerr << "Iteration " << i << " done" << '\n';
-        if (i > 50)
-        {
-          double bestScore = -DBL_MAX;
-          NodeMCTS* bestChild = nullptr;
-          for(auto& child : root->children) {
-              if(child->totalValue/child->visits > bestScore) {
-                  bestChild = child;
-                  bestScore = child->totalValue/child->visits;
-              }
-          }
-          std::cerr << bestChild->move.first.first << ", " << bestChild->move.first.second << " to " <<  bestChild->move.second.first << ", " << bestChild->move.second.second << '\n';
+        int j = 0;
+        for(auto& child : root->children) {
+            if(!child->isLeaf) {
+                std::cerr << "For idx " << j << " total value  - " << child->totalValue << " total visits  - " << child->visits << '\n';
+            }
+            j++;
         }
-
     }
 
     double bestScore = -DBL_MAX;
@@ -326,7 +347,6 @@ pair<pair<int,int>, pair<int,int>> Agent::monte_carlo(int iterations) {
     delete root;
     return bestChild->move;
 }
-
 
 double Agent::minimax_ab_sort(Board board, Node *node, int depth, double alpha, double beta, int maxDepth) {
 

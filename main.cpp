@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
                 cout << move << endl;
             }
             else {
-                pair<pair<int,int>,pair<int,int>> monte_carlo_move = a.monte_carlo(1000);
+                pair<pair<int,int>,pair<int,int>> monte_carlo_move = a.monte_carlo(100);
     //            a.execute_move(move, 1);
                 cout << a.state.execute_move_and_return_server_string(monte_carlo_move) << endl;
             }
