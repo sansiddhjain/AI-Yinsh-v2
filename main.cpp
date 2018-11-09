@@ -30,11 +30,12 @@ int main(int argc, char** argv) {
 //            cerr << "Reached here" << endl;
 //           move = a.get_next_move();
             if(a.state.num_moves_played < 10) {
+            // if(true) {
                 move = a.get_next_move();
                 cout << move << endl;
             }
             else {
-                pair<pair<int,int>,pair<int,int>> monte_carlo_move = a.monte_carlo(100);
+                pair<pair<int,int>,pair<int,int>> monte_carlo_move = a.monte_carlo(1000);
     //            a.execute_move(move, 1);
                 cout << a.state.execute_move_and_return_server_string(monte_carlo_move) << endl;
             }
@@ -49,12 +50,14 @@ int main(int argc, char** argv) {
    else if(player_id == 1) {
        while(true) {
            if(a.state.num_moves_played < 10) {
+           // if(true) {
                move = a.get_next_move();
                cout << move << endl;
            }
            else {
 //           move = a.get_next_move();
                pair<pair<int,int>,pair<int,int>> monte_carlo_move = a.monte_carlo(100);
+               std::cout << monte_carlo_move.first.first << ", " << monte_carlo_move.first.second << " to " <<  monte_carlo_move.second.first << ", " << monte_carlo_move.second.second << '\n';
                cout << a.state.execute_move_and_return_server_string(monte_carlo_move) << endl;
            }
 //            a.execute_move(move, 1);
@@ -111,4 +114,3 @@ int main(int argc, char** argv) {
 //     string move = a.get_next_move();
 //     return 0;
 // }
-

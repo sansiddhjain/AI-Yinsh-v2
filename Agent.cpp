@@ -7,6 +7,7 @@
 #include <algorithm>
 #include "Agent.h"
 #include <iostream>
+#include <cstdlib>
 #include <cfloat>
 
 #define STALEMATE_SCORE 5
@@ -166,8 +167,12 @@ double Agent::minimax(Node *node) {
 
 
 NodeMCTS* Agent::select(NodeMCTS* root){
+    // std::cerr << "inside select" << '\n';
     if(root->isLeaf)
+    {
+        // std::cerr << "select finished" << '\n';
         return root;
+    }
     else {
         //find best child
         double maxUCB1 = -DBL_MAX;
@@ -204,6 +209,12 @@ void Agent::expand(NodeMCTS* node) {
         }
     }
 
+    std::cerr << succ_all.size() << '\n';
+    if (succ_all.empty()) {
+      node->isLeaf = true;
+      return;
+    }
+    // srand(time(NULL));
     int i = rand() % succ_all.size();
 
     NodeMCTS* child = new NodeMCTS(node);
@@ -220,20 +231,28 @@ void Agent::expand(NodeMCTS* node) {
 //plays random move till finish and returns score
 int Agent::simulate(NodeMCTS* node) {
     NodeMCTS simulator(*node);
-
-    while(!check_end(*simulator.configuration)) {
+    simulator.configuration = node->configuration;
+    // std::cerr << simulator.depth << '\n';
+    // std::cerr << simulator.type << '\n';
+    // std::cerr << "entered simulate" << '\n';
+    // std::cerr << check_end(*simulator.configuration) << '\n';
+    while(check_end(*simulator.configuration) < 0) {
+      // std::cerr << "entered while loop" << '\n';
         vector<pair<pair<int, int>, pair<int, int> > > succ_all;
         if (simulator.depth % 2 == 0) {//Self player is playing
+            // std::cerr << "Max node" << '\n';
             simulator.type = 'M';
-            for (int i = 0; i < state.num_rings_on_board; i++) {
+            for (int i = 0; i < simulator.configuration->num_rings_on_board; i++) {
                 vector<pair<pair<int, int>, pair<int, int> > > succ_ring = simulator.configuration->successors(simulator.configuration->rings_vector.at(i));
+                // std::cerr << "calculated successors of one ring" << '\n';
                 succ_all.reserve(succ_all.size() + succ_ring.size());
                 succ_all.insert(succ_all.end(), succ_ring.begin(), succ_ring.end());
+                // std::cerr << "appended to succ_all" << '\n';
             }
         }
         else {//Opponent is playing
             simulator.type = 'm';
-            for (int i = 0; i < state.num_opp_rings_on_board; i++) {
+            for (int i = 0; i < simulator.configuration->num_opp_rings_on_board; i++) {
                 vector<pair<pair<int, int>, pair<int, int> > > succ_ring = simulator.configuration->successors(simulator.configuration->opp_rings_vector.at(i));
                 succ_all.reserve(succ_all.size() + succ_ring.size());
                 succ_all.insert(succ_all.end(), succ_ring.begin(), succ_ring.end());
@@ -243,6 +262,7 @@ int Agent::simulate(NodeMCTS* node) {
         if(succ_all.empty())
             return STALEMATE_SCORE + simulator.configuration->num_opp_rings_on_board - simulator.configuration->num_rings_on_board;
 
+        // srand(time(NULL));
         int i = rand() % succ_all.size();
         simulator.type = simulator.type == 'M' ? 'm' : 'M';
         simulator.depth++;
@@ -271,9 +291,27 @@ pair<pair<int,int>, pair<int,int>> Agent::monte_carlo(int iterations) {
 
     for(int i = 0; i < iterations; i++){
         NodeMCTS* selected = select(root);
+        // std::cerr << "selected" << '\n';
         expand(selected);
+        // std::cerr << "expanded" << '\n';
         int score = simulate(selected);
+        // std::cerr << "simulated" << '\n';
         backpropagate(selected, score);
+        // std::cerr << "backpropagated" << '\n';
+        std::cerr << "Iteration " << i << " done" << '\n';
+        if (i > 50)
+        {
+          double bestScore = -DBL_MAX;
+          NodeMCTS* bestChild = nullptr;
+          for(auto& child : root->children) {
+              if(child->totalValue/child->visits > bestScore) {
+                  bestChild = child;
+                  bestScore = child->totalValue/child->visits;
+              }
+          }
+          std::cerr << bestChild->move.first.first << ", " << bestChild->move.first.second << " to " <<  bestChild->move.second.first << ", " << bestChild->move.second.second << '\n';
+        }
+
     }
 
     double bestScore = -DBL_MAX;
@@ -281,7 +319,7 @@ pair<pair<int,int>, pair<int,int>> Agent::monte_carlo(int iterations) {
     for(auto& child : root->children) {
         if(child->totalValue/child->visits > bestScore) {
             bestChild = child;
-            bestScore = child->totalValue;
+            bestScore = child->totalValue/child->visits;
         }
     }
 
@@ -345,7 +383,7 @@ double Agent::minimax_ab_sort(Board board, Node *node, int depth, double alpha, 
                     node->gotoidx = i;
                 }
                 if((int) v_prime == 10000){
-                    cerr << "BROEKN" << endl;
+                    cerr << "BROKEN" << endl;
                     break;
                 }
                 alpha = max(alpha, v);
@@ -387,10 +425,10 @@ int Agent::check_end(Board state) {
         return 10 - (state.return_m() - state.num_opp_rings_on_board);
     }
     else if (state.num_opp_rings_on_board == (state.return_m() - state.return_l())) {
-        return state.num_rings_on_board;
+        return (state.return_m() - state.num_rings_on_board);
     }
     else
-        return 0;
+        return -1;
 }
 
 
