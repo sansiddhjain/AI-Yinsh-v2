@@ -21,6 +21,7 @@ public:
   double beta;
   char type; //M - max, m - min
   int gotoidx; //The index of child to go to
+
   Node() : score(0), gotoidx(0), isLeaf(false), alpha(-INFINITY), beta(INFINITY), type('u') {}
 };
 
@@ -49,14 +50,28 @@ private:
     double time_left;
     int n;
 public:
+    vector<double> feature_weights;
+    double epsilon_exploration;
+    double discount_factor;
+    double learning_rate;
+
     Board state;
     Board state_tree;
 
-    Agent(int playerID, int board_size, double time_left, char player_col, char other_col) : playerID(playerID), n(board_size), time_left(time_left), state(board_size, 5, 5, 3, player_col, other_col), state_tree(board_size, 5, 5, 3, player_col, other_col) {}
+    double q_value(Board& s, Board& s_prime);
+    double reward_function(Board& s, Board& s_prime);
+    void initialize_weights();
+    pair<double, pair<pair<int,int>,pair<int,int>>> get_best_Qmove(Board& state);
+    void update_weights(double difference, Board& state, Board& successor);
+    bool Qiteration(Board& state);
+    void save_weights(string filename);
+    void load_weights(string filename);
+    void print_weights();
+
+    Agent(int playerID, int board_size, double time_left, char player_col, char other_col) :
+            playerID(playerID), n(board_size), time_left(time_left), state(board_size, 5, 5, 3, player_col, other_col),
+            state_tree(board_size, 5, 5, 3, player_col, other_col), epsilon_exploration(0.3), discount_factor(0.9), learning_rate(0.1) {initialize_weights();}
     void execute_move(string move, int playerID);
-//    void copy_board();
-//    double score_function(vector< pair< pair<int,int>, pair<int,int> > > vec);
-//    double calculate_score(Board& board);
     void recursive_construct_tree(Board board, Node* node, int depth, int maxDepth);
     string get_next_move();
     double minimax(Node* node);

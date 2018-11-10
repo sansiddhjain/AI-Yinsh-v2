@@ -3,3 +3,5 @@ cmake-build-debug/*
 chromedriver/*
 *.zip
 .idea/*
+run.sh
+server.log

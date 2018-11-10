@@ -62,8 +62,6 @@ public:
     int num_markers;
     int num_opp_markers;
     int num_moves_played;
-//    Piece** rings; // (!MIGHT HAVE TO DEPRECATE THIS!) array containing pointers to rings on board. IMPORTANT: check for null before accessing, after deleting a ring this maybe dangling pointer
-//    Piece** opp_rings;
 
     Board(int n, int m, int k, int l, char player_col, char other_col);
     Board(const Board& b);
@@ -87,7 +85,6 @@ public:
     void execute_move(string move, int playerID);
     string execute_move_and_return_server_string(pair<pair<int,int>, pair<int,int>>move);
     vector< pair< pair<int,int>, pair<int,int> > > get_marker_rows(int length, char color); //returns rows of length >= given
-    vector< pair<double, pair<pair<int, int>, pair<int, int> > > > successors_score1(pair<int, int> initial_pos);
 };
 
 

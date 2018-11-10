@@ -217,14 +217,14 @@ bool Board::delete_row(pair<int, int> p1, pair<int, int> p2) {
     // todo: Is a validity check necessary for this?
     // todo (sansiddh) : Validity check to make sure p1 and p2 lie on the same line, and they are at a distance of 5 apart
     if (p1.first == p2.first) {
-        for (int i = min(p1.second, p2.second); i < min(p1.second, p2.second) + 5; i++) {
+        for (int i = min(p1.second, p2.second); i < min(p1.second, p2.second) + return_k(); i++) {
             if (game_board.at(p1.first).at(i).is_marker())
                 remove_piece(make_pair(p1.first, i));
         }
         return true;
     }
     else if (p1.second == p2.second) {
-        for (int i = min(p1.first, p2.first); i < min(p1.first, p2.first) + 5; i++) {
+        for (int i = min(p1.first, p2.first); i < min(p1.first, p2.first) + return_k(); i++) {
             if (game_board.at(i).at(p1.second).is_marker())
                 remove_piece(make_pair(i, p1.second));
         }
@@ -233,7 +233,7 @@ bool Board::delete_row(pair<int, int> p1, pair<int, int> p2) {
     else if (p1.first - p1.second == p2.first - p2.second) {
         // line x-y = k
         int k = p1.first - p1.second;
-        for (int i = min(p1.second, p2.second); i < min(p1.second, p2.second) + 5; i++) {
+        for (int i = min(p1.second, p2.second); i < min(p1.second, p2.second) + return_k(); i++) {
             if (game_board.at(i + k).at(i).is_marker())
                 remove_piece(make_pair(i + k, i));
         }

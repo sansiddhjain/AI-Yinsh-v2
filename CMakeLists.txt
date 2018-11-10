@@ -20,3 +20,11 @@ add_executable(test
         Board.cpp
         Board.h
         test.cpp)
+
+add_executable(qtraining
+        Agent.cpp
+        Agent.h
+        Board.cpp
+        Board.h
+        qtraining.cpp)
+

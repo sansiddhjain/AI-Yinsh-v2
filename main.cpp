@@ -39,11 +39,11 @@ int main(int argc, char** argv) {
     //            a.execute_move(move, 1);
                 cout << a.state.execute_move_and_return_server_string(monte_carlo_move) << endl;
             }
-           move.clear();
-           while(move == "") {
-               getline(cin, move);
-           }
-           a.execute_move(move, 2);
+            move.clear();
+            while(move == "") {
+                getline(cin, move);
+            }
+            a.execute_move(move, 2);
 //            cerr << "2 " << move << "\n";
        }
    }
