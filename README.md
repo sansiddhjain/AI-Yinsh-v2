@@ -1,5 +1,8 @@
 # Yinsh
+
 Simulator supporting smart agents and a user interface for Yinsh, an abstract strategy board game.
+
+This is the second of a two-part assignment to make bots that play Yinsh. This particular bot is also based on minimax, however, support for variable sized boards is incorporated, and heuristics improved. MCTS and Q Learning based bots were also implemented but Minimax showed superior performance. 
 
 ## Rules
 The rules of the game can be found [here](http://www.gipf.com/yinsh/rules/rules.html)
